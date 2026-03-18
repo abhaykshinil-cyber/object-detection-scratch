@@ -84,8 +84,10 @@ def detect_images(source: Path, model, class_names, img_size, device, conf, nms_
             coords = [round(float(v), 1) for v in box]
             print(f"  {name:<15s} conf={float(score):.2f}  bbox={coords}")
 
+        # Draw on the letterboxed image — same coordinate space as model predictions
+        image_lb = letterbox(image, img_size)
         annotated = draw_boxes(
-            image,
+            image_lb,
             boxes.cpu().numpy(), scores.cpu().numpy(), classes.cpu().numpy(),
             class_names,
         )
@@ -114,7 +116,9 @@ def detect_webcam(model, class_names, img_size, device, conf, nms_iou, cam_idx: 
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         boxes, scores, classes, ms = run_single(model, rgb, img_size, device, conf, nms_iou)
 
-        annotated = draw_boxes(rgb, boxes.cpu().numpy(), scores.cpu().numpy(),
+        # Draw on the letterboxed image — same coordinate space as model predictions
+        rgb_lb = letterbox(rgb, img_size)
+        annotated = draw_boxes(rgb_lb, boxes.cpu().numpy(), scores.cpu().numpy(),
                                classes.cpu().numpy(), class_names)
         bgr = cv2.cvtColor(annotated, cv2.COLOR_RGB2BGR)
         cv2.putText(bgr, f"{ms:.1f} ms  {len(boxes)} obj",
